@@ -112,23 +112,17 @@ public final class AccessibilityGenerator: Runnable {
         guard let lines = lines,
               var arrayLines = Array(lines) as? Array<String>,
               !outlets.isEmpty else { return nil }
-        arrayLines.append("\nimport XCTest\n")
-        arrayLines.append("import AccessibilityKit\n")
-        arrayLines.append("import UITestBaseKit\n\n")
+        arrayLines.append("\nimport XCTest\n\n")
+        arrayLines.append("// MARK: - \(className)")
         let classWithoutSuffix = className.replacingOccurrences(of: "ViewController", with: "")
-        arrayLines.append("public final class \(classWithoutSuffix)Page: UIElementPage<UIElements.\(elementType ?? .init())> {\n")
-        arrayLines.append("\t// MARK: - \(className)")
+        arrayLines.append("final class \(classWithoutSuffix)Page: BaseScreen {\n")
         outlets.forEach { (name, type) in
             let elementType = UIElementType.init(rawValue: String(type)) ?? .otherElement
             arrayLines.append("\tlazy var \(name) = \(elementType)(.\(name))\n")
         }
-        arrayLines.append("\n\tpublic required init() {\n")
-        arrayLines.append("\t\tsuper.init()\n")
-        arrayLines.append("\t\tcheck()\n")
-        arrayLines.append("\t}\n\n")
 
         arrayLines.append("\t@discardableResult\n")
-        arrayLines.append("\tpublic func check() -> Self {\n")
+        arrayLines.append("\t func checkElements() -> Self {\n")
         for (index, name) in outletNames.enumerated() {
             if index == .zero {
                 arrayLines.append("\t\twaitForPage(elements: [[\(name): .exist\(outletNames.count == 1 ? "]])\n" : ", ")")
@@ -162,10 +156,8 @@ public final class AccessibilityGenerator: Runnable {
         guard let lines = lines,
               var arrayLines = Array(lines) as? Array<String>,
               !outlets.isEmpty else { return nil }
-        arrayLines.append("\nimport XCTest\n")
-        arrayLines.append("import AccessibilityKit\n")
-        arrayLines.append("import UITestBaseKit\n\n")
-        arrayLines.append("public protocol \(className)Elements where Self: Page {\n")
+        arrayLines.append("\nimport XCTest\n\n")
+        arrayLines.append("public protocol \(className)Elements where Self: Page1 {\n")
 
         let hasClassPrefix = !className.prefix(3).contains { $0.isLowercase }
         var mutableClassName = className
@@ -186,7 +178,7 @@ public final class AccessibilityGenerator: Runnable {
             arrayLines.append("\tfunc \(mutableClassName)\(mutableElementName)(at index: Int) -> XCUIElement\n")
         }
         mutableClassName.lowercaseFirst()
-        arrayLines.append("\tfunc \(mutableClassName)Elements(at index: Int, status: UIStatus) -> [XCUIElement : UIStatus]\n")
+        arrayLines.append("\tfunc \(mutableClassName)Elements(at index: Int, status: UIStatus) -> [XCUIElement: UIStatus]\n")
         mutableClassName.uppercaseFirst()
         arrayLines.append("\tfunc check\(mutableClassName)(at index: Int, status: UIStatus) -> Self\n")
         arrayLines.append("}\n\n")
@@ -207,7 +199,7 @@ public final class AccessibilityGenerator: Runnable {
         arrayLines.append("\t@discardableResult\n")
         mutableClassName.uppercaseFirst()
         mutableClassName.lowercaseFirst()
-        arrayLines.append("\tfunc \(mutableClassName)Elements(at index: Int = 0, status: UIStatus = .exist) -> [XCUIElement : UIStatus] {\n")
+        arrayLines.append("\tfunc \(mutableClassName)Elements(at index: Int = 0, status: UIStatus = .exist) -> [XCUIElement: UIStatus] {\n")
         mutableClassName.lowercaseFirst()
         for (index, name) in outletNames.enumerated() {
             var mutableElementName = String(name)
@@ -259,10 +251,8 @@ public final class AccessibilityGenerator: Runnable {
         guard let lines = lines,
               var arrayLines = Array(lines) as? Array<String>,
               !outlets.isEmpty else { return nil }
-        arrayLines.append("\nimport XCTest\n")
-        arrayLines.append("import AccessibilityKit\n")
-        arrayLines.append("import UITestBaseKit\n\n")
-        arrayLines.append("public protocol \(className)Elements where Self: Page {\n")
+        arrayLines.append("\nimport XCTest\n\n")
+        arrayLines.append("public protocol \(className)Elements where Self: Page2 {\n")
 
         let hasClassPrefix = !className.prefix(3).contains { $0.isLowercase }
         var mutableClassName = className
@@ -280,7 +270,7 @@ public final class AccessibilityGenerator: Runnable {
             arrayLines.append("\tvar \(mutableClassName)\(mutableElementName): XCUIElement { get }\n")
         }
         mutableClassName.lowercaseFirst()
-        arrayLines.append("\n\tfunc \(mutableClassName)Elements(status: UIStatus) -> [XCUIElement : UIStatus]\n")
+        arrayLines.append("\n\tfunc \(mutableClassName)Elements(status: UIStatus) -> [XCUIElement: UIStatus]\n")
         mutableClassName.uppercaseFirst()
         arrayLines.append("\tfunc check\(mutableClassName)(status: UIStatus) -> Self\n")
         arrayLines.append("}\n\n")
@@ -296,7 +286,7 @@ public final class AccessibilityGenerator: Runnable {
         }
         arrayLines.append("\n\t@discardableResult\n")
         mutableClassName.lowercaseFirst()
-        arrayLines.append("\tfunc \(mutableClassName)Elements(status: UIStatus = .exist) -> [XCUIElement : UIStatus] {\n")
+        arrayLines.append("\tfunc \(mutableClassName)Elements(status: UIStatus = .exist) -> [XCUIElement: UIStatus] {\n")
         for (index, name) in outletNames.enumerated() {
             var mutableElementName = String(name)
             mutableElementName.uppercaseFirst()
