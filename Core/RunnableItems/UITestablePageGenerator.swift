@@ -45,11 +45,16 @@ public final class UITestablePageGenerator: Runnable {
     private lazy var outlets: [(name: String.SubSequence, type: String.SubSequence)] = {
         guard let lines = lines,
               var arrayLines = Array(lines) as? Array<String> else { return .init() }
-        let outlets = arrayLines.filter { $0.contains("@IBOutlet") }.compactMap { line -> (String.SubSequence, String.SubSequence)? in
+        var outlets = arrayLines.filter { $0.contains("@IBOutlet") }.compactMap { line -> (String.SubSequence, String.SubSequence)? in
             guard let outlet = line.split(separator: " ").first(where: { $0.last == ":" })?.dropLast(),
                   let type = line.split(separator: " ").last?.dropLast(2),
                   type != "NSLayoutConstraint" else { return nil }
             return (outlet, type)
+        }
+        if viewType == .viewController {
+            var mutableClassName = className.replacingOccurrences(of: "Controller", with: "")
+            var lowercasedClassName = mutableClassName.prefix(1).lowercased() + mutableClassName.dropFirst()
+            outlets.append(("\(lowercasedClassName)", "MainView"))
         }
         return outlets
     }()
@@ -132,7 +137,11 @@ public final class UITestablePageGenerator: Runnable {
         arrayLines.append("}")
         
         if !outlets.isEmpty {
-            arrayLines.append("// MARK: - Action")
+            arrayLines.append("\n// MARK: - Assertion")
+            arrayLines.append("extension \(classWithoutSuffix)Screen {")
+            arrayLines.append("}")
+            
+            arrayLines.append("\n// MARK: - Action")
             arrayLines.append("extension \(classWithoutSuffix)Screen {")
             outlets.forEach { (name, type) in
                 let elementType = UIElementType.init(rawValue: String(type)) ?? .otherElement
@@ -368,7 +377,11 @@ public final class UITestablePageGenerator: Runnable {
         arrayLines.append("\ttypealias UIElementType = UIElements.\(className)Elements\n\n")
         arrayLines.append("\tfunc setAccessibilityIdentifiers() {\n")
         for (name, outletType) in outlets {
-            arrayLines.append("\t\tmakeViewTestable(\(name), using: .\(name))\n")
+            if outletType == "MainView" {
+                arrayLines.append("\t\tmakeViewTestable(self.view, using: .\(name))\n")
+            } else {
+                arrayLines.append("\t\tmakeViewTestable(\(name), using: .\(name))\n")
+            }
             if outletType == "UISearchBar" {
                 arrayLines.append("\t\tmakeViewTestable(\(name).textfield, using: .searchTextField)\n")
             }
