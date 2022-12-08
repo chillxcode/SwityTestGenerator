@@ -365,7 +365,8 @@ public final class AccessibilityGenerator: Runnable {
         let index = arrayLines.firstIndex(where: { $0.contains("func setAccessibilityIdentifiers()") })
         isAlreadySet = index != nil
         if !isAlreadySet {
-            elementType = "\(className)Elements"
+            let classWithoutSuffix = className.replacingOccurrences(of: "ViewController", with: "")
+            elementType = "\(classWithoutSuffix)AccessibilityIdentifier"
             arrayLines.append("\n// MARK: - UITestable\nextension \(className): UITestablePage {\n")
             arrayLines.append("\ttypealias UIElementType = UIElements.\(elementType ?? .init())\n\n")
             arrayLines.append("\tfunc setAccessibilityIdentifiers() {\n")
